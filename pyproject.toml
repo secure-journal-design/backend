@@ -13,6 +13,8 @@ coverage = "^7.3.2"
 coreapi = "^2.3.3"
 djangorestframework = "^3.14.0"
 pyyaml = "^6.0.1"
+pytest-django = "^4.7.0"
+mixer = "^7.2.2"
 
 
 [build-system]
