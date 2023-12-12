@@ -1,15 +1,20 @@
 from rest_framework import viewsets
+from articles import permissions
 from articles.models import Article
-from articles.serializers import ArticleSerializer
+from articles.serializers import ArticleDetailSerializer, ArticleSerializer
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from articles.permissions import IsArticleEditor, IsAuthorOrReadOnly
-from rest_framework import permissions
+from rest_framework.permissions import AllowAny
 
 class ArticleViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthorOrReadOnly, permissions.IsAuthenticated]
+    permission_classes = [IsAuthorOrReadOnly]
     queryset = Article.objects.all()
     serializer_class = ArticleSerializer
+
+    def retrieve(self, request, *args, **kwargs):
+        self.serializer_class = ArticleDetailSerializer
+        return super().retrieve(request, *args, **kwargs)
 
     @action(detail=False, methods=['GET'])
     def by_topic(self, request):

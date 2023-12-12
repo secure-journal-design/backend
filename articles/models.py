@@ -11,5 +11,5 @@ class Article(models.Model):
     subheading = models.CharField(max_length=255, null=True, blank=True, validators=[validate_subheading, RegexValidator(r'^[a-zA-Zà-ù0-9 ,.\-]*$',)])
     title = models.CharField(max_length=60, null=False, blank=False, validators=[validate_title,  RegexValidator(r'^[a-zA-Zà-ù0-9 ,.\-]*$',)])
     body = models.TextField(null=False, blank=False, validators=[validate_body])
-    picture = models.ImageField(null=True, blank=True)
+    picture = models.ImageField(upload_to='articles/', null=True, blank=True)
     likes = models.ManyToManyField(get_user_model(), related_name='liked_articles', blank=True)
