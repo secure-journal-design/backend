@@ -7,7 +7,7 @@ from articles.permissions import IsArticleEditor, IsAuthorOrReadOnly
 from rest_framework import permissions
 
 class ArticleViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthorOrReadOnly, permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthorOrReadOnly, permissions.IsAuthenticated]
     queryset = Article.objects.all()
     serializer_class = ArticleSerializer
 
