@@ -18,7 +18,6 @@ class ArticleSerializer(serializers.ModelSerializer):
     def get_num_likes(self, obj):
         return obj.likes.count()
 
-
 class ArticleDetailSerializer(serializers.ModelSerializer):
     author = UserSerializer()
     likes = UserSerializer(many=True, read_only=True)
@@ -26,3 +25,8 @@ class ArticleDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Article
         fields = ('id', 'author', 'created_at', 'updated_at', 'topic', 'title', 'subheading', 'body', 'picture_url', 'likes')
+
+class AuthorArticleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Article
+        fields = ('id','topic', 'title', 'subheading', 'body', 'picture')
