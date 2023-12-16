@@ -38,8 +38,6 @@ class ArticleViewSet(viewsets.ModelViewSet):
             article.save()
             return Response({'detail': 'Article liked successfully.'}, status=200)
 
-        return Response({'detail': 'Unable to like the article.'}, status=400)
-
 class ArticleEditorViewSet(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication, SessionAuthentication]
     permission_classes = [IsArticleEditor]
