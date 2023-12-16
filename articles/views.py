@@ -1,5 +1,5 @@
 from rest_framework import viewsets
-from rest_framework.authentication import TokenAuthentication
+from rest_framework.authentication import TokenAuthentication, SessionAuthentication
 from articles.models import Article
 from articles.serializers import ArticleDetailSerializer, ArticleSerializer, AuthorArticleSerializer
 from rest_framework.decorators import action
@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from articles.permissions import IsArticleEditor, IsAuthorOrReadOnly
 from rest_framework.permissions import IsAuthenticated
 
-class ArticleViewSet(viewsets.ReadOnlyModelViewSet):
+class ArticleViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthorOrReadOnly]
     queryset = Article.objects.all()
     serializer_class = ArticleSerializer
@@ -28,7 +28,7 @@ class ArticleViewSet(viewsets.ReadOnlyModelViewSet):
 
         return Response(serialized_data)
     
-    @action(detail=True, methods=['POST'], permission_classes=[IsAuthenticated])
+    @action(detail=True, methods=['POST'], permission_classes=[IsAuthenticated], authentication_classes = [TokenAuthentication, SessionAuthentication])
     def like(self, request, pk=None):
         article = self.get_object()
         user = request.user
@@ -41,7 +41,7 @@ class ArticleViewSet(viewsets.ReadOnlyModelViewSet):
         return Response({'detail': 'Unable to like the article.'}, status=400)
 
 class ArticleEditorViewSet(viewsets.ModelViewSet):
-    authentication_classes = [TokenAuthentication]
+    authentication_classes = [TokenAuthentication, SessionAuthentication]
     permission_classes = [IsArticleEditor]
     queryset = Article.objects.all()
     serializer_class = AuthorArticleSerializer
