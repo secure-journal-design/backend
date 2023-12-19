@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 from rest_framework.authentication import TokenAuthentication, SessionAuthentication
 from articles.models import Article
-from articles.serializers import ArticleDetailSerializer, ArticleSerializer, AuthorArticleSerializer
+from articles.serializers import ArticleDetailSerializer, ArticleSerializer, AuthorArticleSerializer, TopicSerializer
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from articles.permissions import IsArticleEditor, IsAuthorOrReadOnly
@@ -9,8 +9,11 @@ from rest_framework.permissions import IsAuthenticated
 
 class ArticleViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthorOrReadOnly]
-    queryset = Article.objects.all()
     serializer_class = ArticleSerializer
+
+    def get_queryset(self):
+        queryset = Article.objects.all().order_by('-created_at')
+        return queryset
 
     def retrieve(self, request, *args, **kwargs):
         self.serializer_class = ArticleDetailSerializer
@@ -20,14 +23,39 @@ class ArticleViewSet(viewsets.ModelViewSet):
     def by_topic(self, request):
         topic_name = request.GET.get('topic')
 
-        if not topic_name:
-            return Response({"error": "Topic parameter is required"}, status=400)
-
+        topic_serializer = TopicSerializer(data={'topic': topic_name})
+        topic_serializer.is_valid(raise_exception=True)
+        topic_name = topic_serializer.validated_data['topic']
+        
         filtered_articles = Article.objects.filter(topic=topic_name)
         serialized_data = ArticleSerializer(filtered_articles, many=True).data
 
         return Response(serialized_data)
     
+    @action(detail=False, methods=['GET'])
+    def by_author(self, request):
+        author_name = request.GET.get('author')        
+
+        if not author_name:
+            return Response({"error": "Author parameter is required"}, status=400)
+
+        filtered_articles = Article.objects.filter(author__username=author_name)
+        serialized_data = ArticleSerializer(filtered_articles, many=True).data
+
+        return Response(serialized_data)
+    """
+    @action(detail=False, methods=['GET'])
+    def by_date(self, request):
+        date = request.GET.get('date')
+
+        if not date:
+            return Response({"error": "Date parameter is required"}, status=400)
+
+        filtered_articles = Article.objects.filter(created_at=date)
+        serialized_data = ArticleSerializer(filtered_articles, many=True).data
+
+        return Response(serialized_data)
+    """
     @action(detail=True, methods=['POST'], permission_classes=[IsAuthenticated], authentication_classes = [TokenAuthentication, SessionAuthentication])
     def like(self, request, pk=None):
         article = self.get_object()

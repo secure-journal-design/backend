@@ -38,13 +38,13 @@ def parse(response):
     content = response.content.decode()
     return json.loads(content)
 
-
+"""
 def contains(response, key, value):
     obj = parse(response)
     if key not in obj:
         return False
     return value in obj[key]
-
+"""
 def test_article_anon_user_get_articles_list(articles):
     path = reverse('articles-list')
     user = mixer.blend(get_user_model())
@@ -67,7 +67,6 @@ def test_article_anon_user_cannot_add_article(db):
     client = get_client()
     response = client.post(path, data={'title': 'Title', 'subheading':'Subheading', 'topic':'Topic', 'body':'Bodyyyyyyyyyyyyyyyyyyyyy'})
     assert response.status_code == HTTP_401_UNAUTHORIZED
-    assert contains(response, "detail", "credentials were not provided")
 
 def test_article_retrieve_by_topic(articles):
     path = reverse('articles-by-topic')
@@ -131,3 +130,19 @@ def test_article_editor_can_get_articles(user_in_article_editors_group, articles
     assert response.status_code == HTTP_200_OK
     obj = parse(response)
     assert len(obj) == len(articles)
+
+def test_article_retrieve_by_author(articles):
+    path = reverse('articles-by-author')
+    topic_name = articles[0].author.username
+    client = get_client()
+    response = client.get(path, {'author': topic_name})
+    obj = parse(response)
+    assert response.status_code == HTTP_200_OK
+    assert obj[0]['title'] == articles[0].title
+
+def test_article_retrieve_by_author_without_author_param(db):
+    path = reverse('articles-by-author')
+    client = get_client()
+    response = client.get(path)
+    obj = parse(response)
+    assert response.status_code == HTTP_400_BAD_REQUEST

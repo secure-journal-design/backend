@@ -16,7 +16,4 @@ urlpatterns = [
     path('api/v1/articles/', include('articles.urls')),
     path('api/v1/auth/', include('dj_rest_auth.urls')),
     path('api/v1/auth/registration/', include('dj_rest_auth.registration.urls')),
-]
-
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
