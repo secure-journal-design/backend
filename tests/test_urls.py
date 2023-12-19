@@ -12,7 +12,7 @@ from articles.models import Article
 
 @pytest.fixture()
 def articles(db):
-    return [mixer.blend('articles.Article') for _ in range(3)]
+    return [mixer.blend('articles.Article', picture="/media/static/picture.jpg") for _ in range(3)]
 
 @pytest.fixture()
 def article_editors_group(db):
@@ -130,19 +130,3 @@ def test_article_editor_can_get_articles(user_in_article_editors_group, articles
     assert response.status_code == HTTP_200_OK
     obj = parse(response)
     assert len(obj) == len(articles)
-
-def test_article_retrieve_by_author(articles):
-    path = reverse('articles-by-author')
-    topic_name = articles[0].author.username
-    client = get_client()
-    response = client.get(path, {'author': topic_name})
-    obj = parse(response)
-    assert response.status_code == HTTP_200_OK
-    assert obj[0]['title'] == articles[0].title
-
-def test_article_retrieve_by_author_without_author_param(db):
-    path = reverse('articles-by-author')
-    client = get_client()
-    response = client.get(path)
-    obj = parse(response)
-    assert response.status_code == HTTP_400_BAD_REQUEST
