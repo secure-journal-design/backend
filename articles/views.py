@@ -20,47 +20,23 @@ class ArticleViewSet(viewsets.ModelViewSet):
         return super().retrieve(request, *args, **kwargs)
 
     @action(detail=False, methods=['GET'])
-    def by_topic(self, request):
+    def by_topic(self, request, *args, **kwargs):
         topic_name = request.GET.get('topic')
 
         topic_serializer = TopicSerializer(data={'topic': topic_name})
         topic_serializer.is_valid(raise_exception=True)
         topic_name = topic_serializer.validated_data['topic']
-        
         filtered_articles = Article.objects.filter(topic=topic_name)
         serialized_data = ArticleSerializer(filtered_articles, many=True).data
-
+        for article in serialized_data:
+            article['picture_url'] = 'http://localhost:8000' + article['picture_url']
         return Response(serialized_data)
-    
-    @action(detail=False, methods=['GET'])
-    def by_author(self, request):
-        author_name = request.GET.get('author')        
 
-        if not author_name:
-            return Response({"error": "Author parameter is required"}, status=400)
-
-        filtered_articles = Article.objects.filter(author__username=author_name)
-        serialized_data = ArticleSerializer(filtered_articles, many=True).data
-
-        return Response(serialized_data)
-    """
-    @action(detail=False, methods=['GET'])
-    def by_date(self, request):
-        date = request.GET.get('date')
-
-        if not date:
-            return Response({"error": "Date parameter is required"}, status=400)
-
-        filtered_articles = Article.objects.filter(created_at=date)
-        serialized_data = ArticleSerializer(filtered_articles, many=True).data
-
-        return Response(serialized_data)
-    """
     @action(detail=True, methods=['POST'], permission_classes=[IsAuthenticated], authentication_classes = [TokenAuthentication, SessionAuthentication])
     def like(self, request, pk=None):
         article = self.get_object()
         user = request.user
-
+        print(user)
         if article:
             article.likes.add(user)
             article.save()
