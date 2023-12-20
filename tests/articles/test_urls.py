@@ -106,6 +106,34 @@ def test_article_user_cannot_like_not_existing_article(articles):
     response = client.post(path)
     assert response.status_code == HTTP_404_NOT_FOUND
 
+def test_article_authenticated_user_can_unlike_article_previously_liked(articles):
+    path = reverse('articles-unlike', kwargs={'pk': articles[0].pk})
+    user = mixer.blend(get_user_model())
+    articles[0].likes.add(user)
+    client = get_client(user)
+    response = client.post(path)
+    assert response.status_code == HTTP_200_OK
+
+def test_article_authenticated_user_cannot_unlike_article_not_previously_liked(articles):
+    path = reverse('articles-unlike', kwargs={'pk': articles[0].pk})
+    user = mixer.blend(get_user_model())
+    client = get_client(user)
+    response = client.post(path)
+    assert response.status_code == HTTP_400_BAD_REQUEST
+
+def test_article_anon_user_cannot_unlike_article(articles):
+    path = reverse('articles-unlike', kwargs={'pk': articles[0].pk})
+    client = get_client()
+    response = client.post(path)
+    assert response.status_code == HTTP_401_UNAUTHORIZED
+
+def test_article_user_cannot_unlike_not_existing_article(articles):
+    path = reverse('articles-unlike', kwargs={'pk': 10})
+    user = mixer.blend(get_user_model())
+    client = get_client(user)
+    response = client.post(path)
+    assert response.status_code == HTTP_404_NOT_FOUND
+
 def test_article_editor_can_create_article(user_in_article_editors_group):
     path = reverse('article-editors-list')
     client = get_client(user_in_article_editors_group)
@@ -114,8 +142,10 @@ def test_article_editor_can_create_article(user_in_article_editors_group):
     assert response.status_code == HTTP_201_CREATED
     assert Article.objects.filter(author=user_in_article_editors_group).exists()
 
-def test_article_editor_can_get_article(user_in_article_editors_group, articles):
+def test_article_editor_can_get_its_own_article(user_in_article_editors_group, articles):
     article = articles[0]
+    article.author = user_in_article_editors_group
+    article.save()
     path = reverse('article-editors-detail', kwargs={'pk': article.pk})
     client = get_client(user_in_article_editors_group)
     response = client.get(path)
@@ -123,10 +153,12 @@ def test_article_editor_can_get_article(user_in_article_editors_group, articles)
     obj = parse(response)
     assert obj['title'] == article.title
 
-def test_article_editor_can_get_articles(user_in_article_editors_group, articles):
+def test_article_editor_can_get_its_own_articles(user_in_article_editors_group, articles):
+    articles[0].author = user_in_article_editors_group
+    articles[0].save()
     path = reverse('article-editors-list')
     client = get_client(user_in_article_editors_group)
     response = client.get(path)
     assert response.status_code == HTTP_200_OK
     obj = parse(response)
-    assert len(obj) == len(articles)
+    assert len(obj) == 1
