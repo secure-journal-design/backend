@@ -4,12 +4,12 @@ from articles.models import Article
 from articles.serializers import ArticleDetailSerializer, ArticleSerializer, AuthorArticleSerializer, TopicSerializer
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from articles.permissions import IsArticleEditor, IsAuthorOrReadOnly
+from articles.permissions import IsArticleEditor, ReadOnly
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 
 class ArticleViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthorOrReadOnly]
+    permission_classes = [ReadOnly]
     serializer_class = ArticleSerializer
 
     def get_queryset(self):
